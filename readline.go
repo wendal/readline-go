@@ -14,25 +14,40 @@ package readline
 import "C"
 import "unsafe"
 
+func init() {
+	// Can't handle console resize yet
+	// So we disable all signal handle in readline
+	C.rl_catch_signals = 0
+	C.rl_catch_sigwinch = 0
+	C.rl_clear_signals()
+	C.rl_set_signals()
+}
+
 func ReadLine(prompt *string) *string {
-	var p *C.char;
+	var p *C.char
 
 	//readline allows an empty prompt(NULL)
-	if prompt != nil { p = C.CString(*prompt) }
+	if prompt != nil {
+		p = C.CString(*prompt)
+	}
 
-	ret := C.readline(p);
+	ret := C.readline(p)
 
-	if p != nil { C.free(unsafe.Pointer(p)) }
+	if p != nil {
+		C.free(unsafe.Pointer(p))
+	}
 
-	if ret == nil { return nil } //EOF
+	if ret == nil {
+		return nil
+	} //EOF
 
-	s := C.GoString(ret);
-	C.free(unsafe.Pointer(ret));
+	s := C.GoString(ret)
+	C.free(unsafe.Pointer(ret))
 	return &s
 }
 
 func AddHistory(s string) {
-	p := C.CString(s);
-	C.add_history(p);
+	p := C.CString(s)
+	C.add_history(p)
 	C.free(unsafe.Pointer(p))
 }
